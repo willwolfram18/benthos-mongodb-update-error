@@ -1,0 +1,28 @@
+input:
+  kafka:
+    addresses:
+      - ${KAFKA_BROKER_SERVERS}
+    topics:
+      - example-topic
+    consumer_group: example-group
+
+pipeline:
+  processors:
+    - bloblang: |
+        root = {}
+        root.id = this.message_id
+        root.name = this.message_name
+
+output:
+  mongodb:
+    url: ${MONGODB_URL}
+    database: my_database
+    collection: my_collection
+    operation: update-one
+    upsert: true
+    write_concern:
+      w: majority
+      w_timeout: 5000ms
+    filter_map: root._id = this.id
+    document_map: |-
+      root.name = this.name
